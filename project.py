@@ -60,7 +60,6 @@ def save_score(user_id, topic_id, result):
 
 def get_topics(subject_id=1):
     con = sqlite3.connect('quiz_db.db')
-    # con.row_factory = dict_factory
     cur = con.cursor()
     query = "SELECT id, name FROM topic WHERE subject_id = ?"
     args = [subject_id]
@@ -79,31 +78,35 @@ class Welcome(QWidget):
     def initUI(self):
         self.setGeometry(100, 100, 650, 300)
         self.setWindowTitle('Тест')
+
         self.welcometext = QLabel(self)
         self.welcometext.setGeometry(QRect(150, -70, 350, 250))
         self.welcometext.setText('электронный тренажёр ')
         self.welcometext.setFont(QtGui.QFont('Segoe Script', 18, 450))
+
         self.description = QLabel(self)
         self.description.setGeometry(QRect(90, -30, 500, 250))
         self.description.setText('самосовершенствуйся с помощью тестов!')
         self.description.setFont(QtGui.QFont('Segoe Script', 15))
+
         self.startquiz = QPushButton('Начать тест', self)
         self.startquiz.resize(150, 40)
         self.startquiz.move(100, 225)
         self.startquiz.clicked.connect(self.startquiz_func)
+
         self.makequiz = QPushButton('Создать тест', self)
         self.makequiz.resize(150, 40)
         self.makequiz.move(400, 225)
         self.makequiz.clicked.connect(self.makequiz_func)
 
     def startquiz_func(self):
-        self.ex = Start()
-        self.ex.show()
+        self.cl = Start()
+        self.cl.show()
         self.close()
 
     def makequiz_func(self):
-        self.ex = CreateQuiz()
-        self.ex.show()
+        self.cl = CreateQuiz()
+        self.cl.show()
         self.close()
 
 
@@ -115,6 +118,7 @@ class CreateQuiz(QWidget):
     def initUI(self):
         self.setGeometry(100, 100, 650, 300)
         self.setWindowTitle('Тест')
+
         self.safe = QPushButton('Выбрать файл', self)
         self.safe.setDisabled(True)
         self.safe.resize(100, 23)
@@ -143,7 +147,7 @@ class CreateQuiz(QWidget):
         con = sqlite3.connect('quiz_db.db')
         cur = con.cursor()
         query = "INSERT INTO topic (name, subject_id) VALUES (?,?)"
-        args = (self.input_name.text(), 2)
+        args = (self.input_name.text(), 1)
         result = cur.execute(query, args)
         topic_id = result.lastrowid
         con.commit()
@@ -227,8 +231,10 @@ class SelectQuiz(QWidget):
         self.cb = QComboBox(self)
         self.cb.move(70, 80)
         self.cb.setPlaceholderText('Выбрать тест:')
+
         for i in get_topics():
             self.cb.addItem(i[1], i[0])
+
         self.cb.currentIndexChanged.connect(self.selectionchange)
 
     def selectionchange(self):
@@ -254,14 +260,15 @@ class Test(QWidget):
     def initUI(self):
         self.setGeometry(100, 100, 650, 300)
         self.setWindowTitle('Тест')
+
         self.input_first = QLabel(self)
         self.input_first.setGeometry(QRect(50, -10, 250, 100))
         self.input_first.setText('Вопрос')
         self.input_first.setFont(QtGui.QFont('Arial', 13))
+
         self.own_result = QLabel(self)
         self.question = QLabel(self)
         self.question.move(50, 70)
-
         self.layout = QFrame(self)
         self.init_button()
 
@@ -270,6 +277,7 @@ class Test(QWidget):
         j = 0
 
         data = get_data(self.topic_id)
+
         correct = data[step]
 
         self.question.setText(correct[2])
@@ -280,7 +288,6 @@ class Test(QWidget):
         self.question.setWordWrap(True)
 
         numbers = (self.length - 1 if self.length < 4 else 3)
-
         failed = random.sample(get_unique_data(self.topic_id, correct[1]), numbers)
         for i in random.sample(failed + [correct], numbers + 1):
             a += 30
@@ -291,12 +298,13 @@ class Test(QWidget):
                 self.button_group.addButton(button_name, correct[0])
             else:
                 self.button_group.addButton(button_name, 0)
+
             button_name.setGeometry(QRect(50, 100 + a, 255, 17))
             button_name.setObjectName("radioButton" + str(j))
             button_name.setText(i[1])
             button_name.toggled.connect(self.get_answer)
-
             button_name.show()
+
         self.input_first.setText('Вопрос № ' + str(self.step + 1) + ' из ' + str(self.length))
 
     def get_answer(self):
@@ -317,6 +325,7 @@ class Test(QWidget):
 
         self.btn.setEnabled(False)
         self.step += 1
+
         if self.step < self.length:
             self.test(self.step)
         else:
@@ -352,8 +361,8 @@ class Test(QWidget):
         self.btn.clicked.connect(self.restart)
 
     def restart(self):
-        self.ex = SelectQuiz(self.user_id)
-        self.ex.show()
+        self.cl = SelectQuiz(self.user_id)
+        self.cl.show()
         self.close()
 
 
